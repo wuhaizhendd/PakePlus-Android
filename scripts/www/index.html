@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>智慧农业 · 新拟态控制台</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <style>
+        :root {
+            --bg: #e8eaf5;
+            --card: #ffffff;
+            --shadow-dark: #c5cae0;
+            --shadow-light: #ffffff;
+            --text-primary: #2d3040;
+            --text-secondary: #7a7f9a;
+            --accent: #7a8fd8;
+            --accent-dark: #5a6fb0;
+            --radius: 28px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: "PingFang SC", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+            background: var(--bg);
+            min-height: 100vh;
+            padding: 0.75rem;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-font-smoothing: antialiased;
+        }
+        .neu-card {
+            background: var(--card);
+            border-radius: var(--radius);
+            box-shadow: 10px 10px 24px var(--shadow-dark), -10px -10px 24px var(--shadow-light);
+            padding: 1.2rem;
+            transition: all 0.25s ease;
+            border: none;
+        }
+        .neu-card-inset {
+            background: var(--card);
+            border-radius: var(--radius);
+            box-shadow: inset 6px 6px 14px var(--shadow-dark), inset -6px -6px 14px var(--shadow-light);
+            padding: 1rem;
+            transition: all 0.25s ease;
+        }
+        .sensor-card {
+            cursor: pointer;
+            transition: all 0.25s ease;
+            background: var(--card);
+            border-radius: 24px;
+            box-shadow: 7px 7px 18px var(--shadow-dark), -7px -7px 18px var(--shadow-light);
+            padding: 0.9rem 1rem;
+        }
+        .sensor-card:hover { box-shadow: 5px 5px 14px var(--shadow-dark), -5px -5px 14px var(--shadow-light); transform: translateY(-2px); }
+        .sensor-card:active { box-shadow: inset 5px 5px 12px var(--shadow-dark), inset -5px -5px 12px var(--shadow-light); transform: scale(0.97); }
+        .sensor-card h4 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .sensor-card .value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            line-height: 1.2;
+            letter-spacing: -0.5px;
+        }
+        .sensor-card .unit {
+            font-size: 0.85rem;
+            font-weight: 400;
+            color: var(--text-secondary);
+            margin-left: 2px;
+        }
+        .sensor-card .hint {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            margin-top: 4px;
+            opacity: 0.8;
+        }
+        .icon-circle {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--card);
+            box-shadow: 4px 4px 10px var(--shadow-dark), -4px -4px 10px var(--shadow-light);
+            font-size: 1rem;
+            color: var(--accent-dark);
+            flex-shrink: 0;
+        }
+        .btn-neu {
+            border-radius: 18px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            padding: 0.7rem 1.1rem;
+            transition: all 0.2s ease;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            min-height: 40px;
+            white-space: nowrap;
+            background: var(--card);
+            box-shadow: 5px 5px 12px var(--shadow-dark), -5px -5px 12px var(--shadow-light);
+            color: var(--text-primary);
+        }
+        .btn-neu:active { box-shadow: inset 4px 4px 10px var(--shadow-dark), inset -4px -4px 10px var(--shadow-light); transform: scale(0.97); }
+        .btn-neu:disabled { opacity: 0.45; pointer-events: none; }
+        .btn-neu-primary {
+            background: var(--accent);
+            color: white;
+            box-shadow: 5px 5px 12px rgba(122,143,216,0.4), -5px -5px 12px rgba(255,255,255,0.6);
+        }
+        .btn-neu-primary:active { box-shadow: inset 4px 4px 10px rgba(90,111,176,0.3), inset -4px -4px 10px rgba(255,255,255,0.2); }
+        .adjust-btn {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: var(--card);
+            box-shadow: 4px 4px 10px var(--shadow-dark), -4px -4px 10px var(--shadow-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+        }
+        .adjust-btn:active { box-shadow: inset 4px 4px 10px var(--shadow-dark), inset -4px -4px 10px var(--shadow-light); transform: scale(0.9); }
+        .switch-neu {
+            position: relative;
+            width: 58px;
+            height: 32px;
+            background: var(--card);
+            border-radius: 999px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            padding: 0;
+            box-shadow: inset 4px 4px 10px var(--shadow-dark), inset -4px -4px 10px var(--shadow-light);
+        }
+        .switch-neu.on { background: var(--accent); }
+        .switch-neu::after {
+            content: '';
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            width: 24px;
+            height: 24px;
+            background: #fff;
+            border-radius: 50%;
+            transition: transform 0.3s ease;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
+        .switch-neu.on::after { transform: translateX(26px); }
+        .switch-neu:disabled { opacity: 0.4; pointer-events: none; }
+        .status-badge {
+            display: inline-block;
+            padding: 0.3rem 0.8rem;
+            border-radius: 999px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            background: var(--card);
+            box-shadow: 4px 4px 10px var(--shadow-dark), -4px -4px 10px var(--shadow-light);
+            color: var(--text-primary);
+        }
+        .section-title {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+            margin: 1rem 0 0.5rem 0.2rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        .toast-msg {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--accent);
+            color: white;
+            padding: 10px 22px;
+            border-radius: 999px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.2);
+            z-index: 9999;
+            animation: slideDown 0.3s ease-out;
+            display: none;
+        }
+        @keyframes slideDown {
+            from { opacity: 0; transform: translate(-50%, -15px); }
+            to { opacity: 1; transform: translate(-50%, 0); }
+        }
+        .modal-backdrop {
+            background: rgba(30,40,60,0.5);
+            backdrop-filter: blur(4px);
+        }
+        .page { display: none; }
+        .page.active { display: block; }
+        .input-field {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border: none;
+            border-radius: 16px;
+            background: var(--card);
+            box-shadow: inset 4px 4px 10px var(--shadow-dark), inset -4px -4px 10px var(--shadow-light);
+            font-size: 1rem;
+            color: var(--text-primary);
+            outline: none;
+            transition: all 0.2s;
+        }
+        .input-field:focus {
+            box-shadow: inset 2px 2px 6px var(--shadow-dark), inset -2px -2px 6px var(--shadow-light);
+        }
+        .input-label {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+        @media (max-width: 640px) {
+            .sensor-card .value { font-size: 1.7rem; }
+            .sensor-card h4 { font-size: 0.9rem; }
+            .icon-circle { width: 32px; height: 32px; font-size: 0.85rem; }
+            .btn-neu { font-size: 0.85rem; padding: 0.6rem 0.8rem; min-height: 36px; }
+            .adjust-btn { width: 34px; height: 34px; font-size: 1.2rem; }
+            .switch-neu { width: 50px; height: 28px; }
+            .switch-neu::after { width: 20px; height: 20px; }
+            .switch-neu.on::after { transform: translateX(22px); }
+        }
+    </style>
+</head>
+<body>
+    <div id="toast" class="toast-msg"></div>
+
+    <!-- ==================== 主页面 ==================== -->
+    <div id="homePage" class="page active max-w-5xl mx-auto">
+        <header class="neu-card mb-4">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+                <div>
+                    <h1 class="text-xl md:text-2xl font-bold text-[#2d3040]">🌱 智慧农业</h1>
+                    <p class="text-xs text-[#7a7f9a]">设备：<span id="deviceNameDisplay">未配置</span></p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span id="statusDot" class="w-3.5 h-3.5 rounded-full bg-gray-400"></span>
+                    <span id="statusText" class="text-base font-medium text-[#2d3040]">未连接</span>
+                    <button id="goSettingsBtn" class="btn-neu btn-neu-primary text-sm px-3 py-2">
+                        <i class="fa fa-sliders"></i> 设置
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- 控制区 -->
+        <section class="neu-card mb-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div class="neu-card-inset flex items-center justify-between md:justify-start md:gap-3">
+                    <div>
+                        <h3 class="text-sm font-bold text-[#2d3040]">运行模式</h3>
+                        <p class="text-xs text-[#7a7f9a]">当前：<span id="modeStatus" class="font-semibold">--</span></p>
+                    </div>
+                    <button id="modeToggleBtn" class="btn-neu btn-neu-primary text-sm px-3 py-2">
+                        <i class="fa fa-exchange"></i> 切换
+                    </button>
+                </div>
+                <div class="neu-card-inset flex items-center justify-between">
+                    <div>
+                        <h3 class="text-sm font-bold text-[#2d3040]">手动开关</h3>
+                        <p class="text-xs text-[#7a7f9a]">manual_auto</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span id="switchLabel" class="text-base font-bold text-[#2d3040]">关</span>
+                        <button id="switchBtn" class="switch-neu" disabled></button>
+                    </div>
+                </div>
+                <div class="neu-card-inset flex items-center justify-between">
+                    <div>
+                        <h3 class="text-sm font-bold text-[#2d3040]">水泵状态</h3>
+                        <p class="text-xs text-[#7a7f9a]">pump_running</p>
+                    </div>
+                    <span id="pumpStatus" class="status-badge">未知</span>
+                </div>
+            </div>
+            <p id="manualHint" class="text-center text-xs text-amber-600 mt-2 hidden">自动模式下不可手动控制</p>
+        </section>
+
+        <!-- 传感器数据 -->
+        <div class="section-title">📊 土壤传感器数据</div>
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 mb-6">
+            <div class="sensor-card" data-identifier="soil_temp" data-name="土壤温度" data-unit="℃" data-color="#f59e0b">
+                <h4><span class="icon-circle"><i class="fa fa-thermometer-half"></i></span>温度</h4>
+                <div class="value"><span id="val_soil_temp">--</span><span class="unit">℃</span></div>
+                <p class="hint">点击查看历史</p>
+            </div>
+            <div class="sensor-card" data-identifier="soil_humi" data-name="土壤湿度" data-unit="%RH" data-color="#10b981">
+                <h4><span class="icon-circle"><i class="fa fa-tint"></i></span>湿度</h4>
+                <div class="value"><span id="val_soil_humi">--</span><span class="unit">%RH</span></div>
+                <p class="hint">点击查看历史</p>
+            </div>
+            <div class="sensor-card" data-identifier="soil_ec" data-name="土壤电导率" data-unit="μS/cm" data-color="#8b5cf6">
+                <h4><span class="icon-circle"><i class="fa fa-bolt"></i></span>电导率</h4>
+                <div class="value"><span id="val_soil_ec">--</span><span class="unit">μS/cm</span></div>
+                <p class="hint">点击查看历史</p>
+            </div>
+            <div class="sensor-card" data-identifier="soil_salt" data-name="土壤盐分" data-unit="mg/L" data-color="#06b6d4">
+                <h4><span class="icon-circle"><i class="fa fa-flask"></i></span>盐分</h4>
+                <div class="value"><span id="val_soil_salt">--</span><span class="unit">mg/L</span></div>
+                <p class="hint">点击查看历史</p>
+            </div>
+            <div class="sensor-card" data-identifier="soil_n" data-name="土壤氮含量" data-unit="mg/kg" data-color="#22c55e">
+                <h4><span class="icon-circle"><i class="fa fa-leaf"></i></span>氮</h4>
+                <div class="value"><span id="val_soil_n">--</span><span class="unit">mg/kg</span></div>
+                <p class="hint">点击查看历史</p>
+            </div>
+            <div class="sensor-card" data-identifier="soil_p" data-name="土壤磷含量" data-unit="mg/kg" data-color="#f97316">
+                <h4><span class="icon-circle"><i class="fa fa-pagelines"></i></span>磷</h4>
+                <div class="value"><span id="val_soil_p">--</span><span class="unit">mg/kg</span></div>
+                <p class="hint">点击查看历史</p>
+            </div>
+            <div class="sensor-card" data-identifier="soil_k" data-name="土壤钾含量" data-unit="mg/kg" data-color="#a855f7">
+                <h4><span class="icon-circle"><i class="fa fa-tree"></i></span>钾</h4>
+                <div class="value"><span id="val_soil_k">--</span><span class="unit">mg/kg</span></div>
+                <p class="hint">点击查看历史</p>
+            </div>
+            <div class="sensor-card" data-identifier="soil_ph" data-name="土壤PH值" data-unit="pH" data-color="#ec4899">
+                <h4><span class="icon-circle"><i class="fa fa-balance-scale"></i></span>PH值</h4>
+                <div class="value"><span id="val_soil_ph">--</span><span class="unit">pH</span></div>
+                <p class="hint">点击查看历史</p>
+            </div>
+        </div>
+
+        <footer class="text-center text-xs text-[#7a7f9a] pb-4">
+            <i class="fa fa-refresh"></i> 数据每10秒自动刷新
+        </footer>
+    </div>
+
+    <!-- ==================== 设置页面 ==================== -->
+    <div id="settingsPage" class="page max-w-5xl mx-auto">
+        <header class="neu-card mb-4">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+                <div class="flex items-center gap-3">
+                    <button id="backHomeBtn" class="btn-neu btn-neu-primary text-lg px-5 py-3">
+                        <i class="fa fa-arrow-left"></i> 返回主页
+                    </button>
+                    <h1 class="text-xl md:text-2xl font-bold text-[#2d3040]">⚙️ 设置</h1>
+                </div>
+            </div>
+        </header>
+
+        <!-- 设备配置 -->
+        <section class="neu-card mb-4">
+            <h2 class="text-lg font-bold text-[#2d3040] mb-3">📡 设备配置</h2>
+            <div class="space-y-3">
+                <div>
+                    <label class="input-label">产品ID</label>
+                    <input type="text" id="inputProductId" class="input-field" placeholder="请输入产品ID">
+                </div>
+                <div>
+                    <label class="input-label">设备名称</label>
+                    <input type="text" id="inputDeviceName" class="input-field" placeholder="请输入设备名称">
+                </div>
+                <div>
+                    <label class="input-label">Token</label>
+                    <input type="password" id="inputToken" class="input-field" placeholder="请输入Token">
+                </div>
+                <div class="flex gap-3">
+                    <button id="saveConfigBtn" class="btn-neu btn-neu-primary flex-1">
+                        <i class="fa fa-save"></i> 保存并连接
+                    </button>
+                    <button id="clearConfigBtn" class="btn-neu flex-1">
+                        <i class="fa fa-trash"></i> 清除
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 阈值设置 -->
+        <h2 class="text-lg font-bold text-[#2d3040] mb-3">🎚️ 阈值设置</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+            <div class="sensor-card" data-identifier="humi_high" data-name="湿度上限" data-unit="%RH" data-color="#10b981">
+                <h4><span class="icon-circle"><i class="fa fa-arrow-up"></i></span>湿度上限</h4>
+                <div class="value"><span id="val_humi_high">--</span><span class="unit">%RH</span></div>
+                <div class="flex items-center gap-2 mt-4">
+                    <button class="adjust-btn" data-action="decrease" data-identifier="humi_high">−</button>
+                    <span class="text-sm font-bold text-[#7a7f9a] flex-1 text-center">调节</span>
+                    <button class="adjust-btn" data-action="increase" data-identifier="humi_high">+</button>
+                </div>
+            </div>
+            <div class="sensor-card" data-identifier="humi_low" data-name="湿度下限" data-unit="%RH" data-color="#10b981">
+                <h4><span class="icon-circle"><i class="fa fa-arrow-down"></i></span>湿度下限</h4>
+                <div class="value"><span id="val_humi_low">--</span><span class="unit">%RH</span></div>
+                <div class="flex items-center gap-2 mt-4">
+                    <button class="adjust-btn" data-action="decrease" data-identifier="humi_low">−</button>
+                    <span class="text-sm font-bold text-[#7a7f9a] flex-1 text-center">调节</span>
+                    <button class="adjust-btn" data-action="increase" data-identifier="humi_low">+</button>
+                </div>
+            </div>
+            <div class="sensor-card" data-identifier="volt_high" data-name="电压上限" data-unit="V" data-color="#f59e0b">
+                <h4><span class="icon-circle"><i class="fa fa-arrow-up"></i></span>电压上限</h4>
+                <div class="value"><span id="val_volt_high">--</span><span class="unit">V</span></div>
+                <div class="flex items-center gap-2 mt-4">
+                    <button class="adjust-btn" data-action="decrease" data-identifier="volt_high">−</button>
+                    <span class="text-sm font-bold text-[#7a7f9a] flex-1 text-center">调节</span>
+                    <button class="adjust-btn" data-action="increase" data-identifier="volt_high">+</button>
+                </div>
+            </div>
+            <div class="sensor-card" data-identifier="volt_low" data-name="电压下限" data-unit="V" data-color="#f59e0b">
+                <h4><span class="icon-circle"><i class="fa fa-arrow-down"></i></span>电压下限</h4>
+                <div class="value"><span id="val_volt_low">--</span><span class="unit">V</span></div>
+                <div class="flex items-center gap-2 mt-4">
+                    <button class="adjust-btn" data-action="decrease" data-identifier="volt_low">−</button>
+                    <span class="text-sm font-bold text-[#7a7f9a] flex-1 text-center">调节</span>
+                    <button class="adjust-btn" data-action="increase" data-identifier="volt_low">+</button>
+                </div>
+            </div>
+            <div class="sensor-card" data-identifier="timeout_th" data-name="超时阈值" data-unit="分钟" data-color="#8b5cf6">
+                <h4><span class="icon-circle"><i class="fa fa-clock-o"></i></span>超时阈值</h4>
+                <div class="value"><span id="val_timeout_th">--</span><span class="unit">分钟</span></div>
+                <div class="flex items-center gap-2 mt-4">
+                    <button class="adjust-btn" data-action="decrease" data-identifier="timeout_th">−</button>
+                    <span class="text-sm font-bold text-[#7a7f9a] flex-1 text-center">调节</span>
+                    <button class="adjust-btn" data-action="increase" data-identifier="timeout_th">+</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 历史数据弹窗 -->
+    <div id="historyModal" class="fixed inset-0 modal-backdrop flex items-center justify-center z-50 hidden p-4">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden">
+            <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+                <h3 id="modalTitle" class="text-xl font-bold text-gray-800">历史数据</h3>
+                <button id="closeModal" class="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 text-2xl">&times;</button>
+            </div>
+            <div class="p-4">
+                <span id="modalBadge" class="text-sm font-semibold px-3 py-1 rounded-full bg-gray-100 text-gray-600"></span>
+                <span class="text-sm text-gray-500 ml-2">最近24小时</span>
+                <div id="historyChart" style="width:100%; height:320px;" class="mt-4"></div>
+                <div class="mt-4 text-center text-sm text-gray-500" id="chartLoadingTip">加载中...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            // ========== 默认配置（空） ==========
+            const defaultConfig = {
+                productId: "",
+                deviceName: "",
+                token: ""
+            };
+
+            // ========== 从 localStorage 读取配置 ==========
+            function loadConfig() {
+                try {
+                    const saved = localStorage.getItem('agriConfig');
+                    if (saved) {
+                        return JSON.parse(saved);
+                    }
+                } catch (e) {}
+                return { ...defaultConfig };
+            }
+
+            // ========== 保存配置到 localStorage ==========
+            function saveConfigToStorage(cfg) {
+                localStorage.setItem('agriConfig', JSON.stringify(cfg));
+            }
+
+            // ========== 当前运行时配置 ==========
+            let config = loadConfig();
+
+            // ========== API 基础配置 ==========
+            const api = {
+                deviceDetail: "https://iot-api.heclouds.com/device/detail",
+                getProperty: "https://iot-api.heclouds.com/thingmodel/query-device-property",
+                setProperty: "https://iot-api.heclouds.com/thingmodel/set-device-property",
+                getHistory: "https://iot-api.heclouds.com/thingmodel/query-device-property-history"
+            };
+
+            let chartInstance = null;
+            let propertyCache = {};
+            let refreshTimer = null;
+            let modeUpdateLock = false;
+            const manualLock = {};
+
+            const adjustableParams = {
+                humi_high: { step: 1, min: 0, max: 100, decimals: 0 },
+                humi_low: { step: 1, min: 0, max: 100, decimals: 0 },
+                volt_high: { step: 0.1, min: 0, max: 15, decimals: 1 },
+                volt_low: { step: 0.1, min: 0, max: 15, decimals: 1 },
+                timeout_th: { step: 60, min: 60, max: 240, decimals: 0 }
+            };
+
+            const cardConfigs = {
+                soil_temp: { name:'土壤温度', unit:'℃', color:'#f59e0b' },
+                soil_humi: { name:'土壤湿度', unit:'%RH', color:'#10b981' },
+                soil_ec: { name:'土壤电导率', unit:'μS/cm', color:'#8b5cf6' },
+                soil_salt: { name:'土壤盐分', unit:'mg/L', color:'#06b6d4' },
+                soil_n: { name:'土壤氮含量', unit:'mg/kg', color:'#22c55e' },
+                soil_p: { name:'土壤磷含量', unit:'mg/kg', color:'#f97316' },
+                soil_k: { name:'土壤钾含量', unit:'mg/kg', color:'#a855f7' },
+                soil_ph: { name:'土壤PH值', unit:'pH', color:'#ec4899' },
+                humi_high: { name:'湿度上限', unit:'%RH', color:'#10b981' },
+                humi_low: { name:'湿度下限', unit:'%RH', color:'#10b981' },
+                volt_high: { name:'电压上限', unit:'V', color:'#f59e0b' },
+                volt_low: { name:'电压下限', unit:'V', color:'#f59e0b' },
+                timeout_th: { name:'超时阈值', unit:'分钟', color:'#8b5cf6' }
+            };
+
+            function parseBool(v){ return v===true||v===1||v==='1'||v==='true'; }
+            function formatValue(value, identifier){
+                if(value===undefined||value===null||value==='') return '--';
+                if(identifier==='timeout_th') return Math.round(Number(value)/60).toString();
+                if(['soil_temp','soil_humi','soil_ph','volt_high','volt_low'].includes(identifier)) return parseFloat(value).toFixed(1);
+                return parseInt(value).toString();
+            }
+
+            function showToast(message) {
+                const toast = document.getElementById('toast');
+                toast.textContent = message;
+                toast.style.display = 'block';
+                clearTimeout(toast._timeout);
+                toast._timeout = setTimeout(() => { toast.style.display = 'none'; }, 2000);
+            }
+
+            function switchPage(pageId) {
+                document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+                document.getElementById(pageId).classList.add('active');
+            }
+
+            function updateDeviceNameDisplay() {
+                document.getElementById('deviceNameDisplay').textContent = config.deviceName || '未配置';
+            }
+
+            function populateConfigInputs() {
+                document.getElementById('inputProductId').value = config.productId || '';
+                document.getElementById('inputDeviceName').value = config.deviceName || '';
+                document.getElementById('inputToken').value = config.token || '';
+            }
+
+            function saveConfig() {
+                const productId = document.getElementById('inputProductId').value.trim();
+                const deviceName = document.getElementById('inputDeviceName').value.trim();
+                const token = document.getElementById('inputToken').value.trim();
+
+                if (!productId || !deviceName || !token) {
+                    showToast('请填写完整设备信息');
+                    return;
+                }
+
+                config = { productId, deviceName, token };
+                saveConfigToStorage(config);
+                updateDeviceNameDisplay();
+                showToast('已保存，正在连接...');
+                // 重新获取数据
+                fetchDeviceStatus();
+                fetchDeviceProperties();
+                // 返回主页
+                setTimeout(() => switchPage('homePage'), 500);
+            }
+
+            function clearConfig() {
+                if (!confirm('确定要清除设备配置吗？')) return;
+                localStorage.removeItem('agriConfig');
+                config = { ...defaultConfig };
+                updateDeviceNameDisplay();
+                populateConfigInputs();
+                showToast('配置已清除');
+                // 返回主页
+                setTimeout(() => switchPage('homePage'), 500);
+            }
+
+            async function fetchDeviceStatus(){
+                if (!config.token || !config.productId || !config.deviceName) {
+                    document.getElementById('statusDot').className = 'w-3.5 h-3.5 rounded-full bg-gray-400';
+                    document.getElementById('statusText').textContent = '未连接';
+                    document.getElementById('statusText').className = 'text-base font-medium text-gray-500';
+                    return;
+                }
+                try{
+                    const res=await fetch(`${api.deviceDetail}?product_id=${config.productId}&device_name=${config.deviceName}`,{headers:{'authorization':config.token}});
+                    const data=await res.json();
+                    if(data.code===0&&data.data){
+                        const online=data.data.status===1||data.data.status==='1';
+                        document.getElementById('statusDot').className=`w-3.5 h-3.5 rounded-full ${online?'bg-green-500':'bg-gray-400'}`;
+                        document.getElementById('statusText').textContent=online?'在线':'离线';
+                        document.getElementById('statusText').className=`text-base font-medium ${online?'text-green-600':'text-gray-500'}`;
+                    } else {
+                        document.getElementById('statusDot').className='w-3.5 h-3.5 rounded-full bg-gray-400';
+                        document.getElementById('statusText').textContent='连接失败';
+                        document.getElementById('statusText').className='text-base font-medium text-red-500';
+                    }
+                }catch(e){
+                    document.getElementById('statusDot').className='w-3.5 h-3.5 rounded-full bg-gray-400';
+                    document.getElementById('statusText').textContent='连接失败';
+                    document.getElementById('statusText').className='text-base font-medium text-red-500';
+                }
+            }
+
+            async function fetchDeviceProperties(skipMode=false){
+                if (!config.token || !config.productId || !config.deviceName) return;
+                try{
+                    const res=await fetch(`${api.getProperty}?product_id=${config.productId}&device_name=${config.deviceName}`,{headers:{'authorization':config.token}});
+                    const data=await res.json();
+                    if(data.code===0&&Array.isArray(data.data)){
+                        const filtered = data.data.map(item => {
+                            if (manualLock[item.identifier]) {
+                                return { identifier: item.identifier, value: propertyCache[item.identifier] };
+                            }
+                            return item;
+                        });
+                        filtered.forEach(item=>{ if(item.identifier) propertyCache[item.identifier]=item.value; });
+                        updateCards(filtered);
+                        updateSwitchAndPump(filtered);
+                        if(!skipMode&&!modeUpdateLock) updateMode(filtered);
+                    }
+                }catch(e){}
+            }
+
+            function updateCards(list){
+                Object.keys(cardConfigs).forEach(id=>{
+                    const el=document.getElementById(`val_${id}`);
+                    if(el){ const item=list.find(i=>i.identifier===id); el.textContent=item?formatValue(item.value,id):'--'; }
+                });
+            }
+
+            function updateSwitchAndPump(list){
+                const manualItem = list.find(i=>i.identifier==='manual_auto');
+                const pumpItem = list.find(i=>i.identifier==='pump_running');
+                const modeItem = list.find(i=>i.identifier==='mode_select');
+                const isManualMode = modeItem ? parseBool(modeItem.value) : false;
+                const switchBtn = document.getElementById('switchBtn');
+                const switchLabel = document.getElementById('switchLabel');
+                const pumpStatus = document.getElementById('pumpStatus');
+                
+                if (manualItem) {
+                    const isOn = parseBool(manualItem.value);
+                    switchBtn.classList.toggle('on', isOn);
+                    switchLabel.textContent = isOn ? '开' : '关';
+                    if (isManualMode) {
+                        pumpStatus.textContent = isOn ? '运行中' : '停止';
+                        pumpStatus.className = `status-badge ${isOn ? 'text-green-600' : 'text-red-500'}`;
+                    }
+                }
+                if (!isManualMode && pumpItem) {
+                    const pumpOn = parseBool(pumpItem.value);
+                    pumpStatus.textContent = pumpOn ? '运行中' : '停止';
+                    pumpStatus.className = `status-badge ${pumpOn ? 'text-green-600' : 'text-red-500'}`;
+                }
+            }
+
+            function updateMode(list){
+                const mode=list.find(i=>i.identifier==='mode_select');
+                if(!mode) return;
+                const isManual=parseBool(mode.value);
+                document.getElementById('modeStatus').textContent=isManual?'手动模式':'自动模式';
+                document.getElementById('modeToggleBtn').innerHTML=isManual?'<i class="fa fa-exchange"></i> 切换自动':'<i class="fa fa-exchange"></i> 切换手动';
+                document.getElementById('switchBtn').disabled=!isManual;
+                document.getElementById('manualHint').classList.toggle('hidden',isManual);
+            }
+
+            function toggleSwitch(){
+                if (!config.token) return;
+                const current = propertyCache['manual_auto'];
+                const isOn = parseBool(current);
+                const newState = !isOn;
+                propertyCache['manual_auto'] = newState;
+                manualLock['manual_auto'] = true;
+
+                document.getElementById('switchBtn').classList.toggle('on', newState);
+                document.getElementById('switchLabel').textContent = newState ? '开' : '关';
+                const modeIsManual = parseBool(propertyCache['mode_select']);
+                if (modeIsManual) {
+                    document.getElementById('pumpStatus').textContent = newState ? '运行中' : '停止';
+                    document.getElementById('pumpStatus').className = `status-badge ${newState ? 'text-green-600' : 'text-red-500'}`;
+                }
+
+                fetch(api.setProperty,{method:'POST',headers:{'authorization':config.token,'Content-Type':'application/json'},body:JSON.stringify({product_id:config.productId,device_name:config.deviceName,params:{manual_auto:newState}})})
+                .then(r=>r.json()).then(data=>{ if(data.code===0) showToast('指令已发送'); });
+            }
+
+            function toggleMode(){
+                if (!config.token || modeUpdateLock) return;
+                const cur=propertyCache['mode_select'];
+                const isManual=parseBool(cur);
+                const newMode=!isManual;
+                modeUpdateLock=true;
+                fetch(api.setProperty,{method:'POST',headers:{'authorization':config.token,'Content-Type':'application/json'},body:JSON.stringify({product_id:config.productId,device_name:config.deviceName,params:{mode_select:newMode}})})
+                .then(r=>r.json()).then(data=>{
+                    if(data.code===0){ showToast('指令已发送'); setTimeout(()=>{modeUpdateLock=false;fetchDeviceProperties();},3000); }
+                    else modeUpdateLock=false;
+                });
+            }
+
+            function adjustParam(id,action){
+                if (!config.token) return;
+                const param=adjustableParams[id];
+                if(!param) return;
+                const cur=propertyCache[id];
+                if(cur===undefined||cur===null) return;
+                let newVal=Number(cur);
+                if(action==='increase') newVal=+(newVal+param.step).toFixed(param.decimals);
+                else newVal=+(newVal-param.step).toFixed(param.decimals);
+                newVal=Math.min(param.max,Math.max(param.min,newVal));
+                propertyCache[id]=newVal;
+                document.getElementById(`val_${id}`).textContent=formatValue(newVal,id);
+                fetch(api.setProperty,{method:'POST',headers:{'authorization':config.token,'Content-Type':'application/json'},body:JSON.stringify({product_id:config.productId,device_name:config.deviceName,params:{[id]:newVal}})})
+                .then(r=>r.json()).then(data=>{
+                    if(data.code===0){ showToast('指令已发送'); }
+                    else { propertyCache[id]=cur; document.getElementById(`val_${id}`).textContent=formatValue(cur,id); showToast('下发失败'); }
+                });
+            }
+
+            async function fetchHistory(id,name,unit,color){
+                if (!config.token) return null;
+                const end=Date.now(),start=end-86400000;
+                const url=`${api.getHistory}?product_id=${config.productId}&device_name=${config.deviceName}&identifier=${id}&start_time=${start}&end_time=${end}&limit=100`;
+                const res=await fetch(url,{headers:{'authorization':config.token}});
+                const data=await res.json();
+                if(data.code===0&&data.data&&data.data.list){
+                    const list=data.data.list.sort((a,b)=>Number(a.time)-Number(b.time));
+                    const times=list.map(i=>{const d=new Date(Number(i.time));return `${d.getHours()}:${d.getMinutes()}`;});
+                    const values=list.map(i=>Number(i.value));
+                    return {times,values};
+                }
+                return null;
+            }
+            function renderChart(name,unit,color,times,values){
+                if(chartInstance) chartInstance.dispose();
+                chartInstance=echarts.init(document.getElementById('historyChart'));
+                chartInstance.setOption({
+                    tooltip:{trigger:'axis'},
+                    grid:{left:'3%',right:'4%',bottom:'8%',top:'8%',containLabel:true},
+                    xAxis:{type:'category',data:times},
+                    yAxis:{type:'value',name:unit},
+                    series:[{name,type:'line',data:values,smooth:true,lineStyle:{width:3,color},itemStyle:{color},areaStyle:{color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:color+'30'},{offset:1,color:color+'05'}])}}]
+                });
+                chartInstance.resize();
+                window.addEventListener('resize',()=>chartInstance.resize());
+            }
+            function openHistory(id){
+                const name=cardConfigs[id].name, unit=cardConfigs[id].unit, color=cardConfigs[id].color;
+                document.getElementById('modalTitle').textContent=`${name} - 历史数据`;
+                document.getElementById('modalBadge').textContent=`${id} · ${unit}`;
+                document.getElementById('historyModal').classList.remove('hidden');
+                document.getElementById('chartLoadingTip').textContent='加载中...';
+                fetchHistory(id,name,unit,color).then(res=>{
+                    if(res){ renderChart(name,unit,color,res.times,res.values); document.getElementById('chartLoadingTip').textContent=`共 ${res.times.length} 条`; }
+                    else document.getElementById('chartLoadingTip').textContent='暂无数据';
+                });
+            }
+            function closeHistory(){ document.getElementById('historyModal').classList.add('hidden'); if(chartInstance){chartInstance.dispose();chartInstance=null;} }
+
+            function init(){
+                updateDeviceNameDisplay();
+                populateConfigInputs();
+                fetchDeviceStatus();
+                fetchDeviceProperties();
+                refreshTimer=setInterval(()=>{fetchDeviceStatus();fetchDeviceProperties(modeUpdateLock);},10000);
+
+                document.getElementById('goSettingsBtn').addEventListener('click',()=>{populateConfigInputs();switchPage('settingsPage');});
+                document.getElementById('backHomeBtn').addEventListener('click',()=>switchPage('homePage'));
+                document.getElementById('saveConfigBtn').addEventListener('click',saveConfig);
+                document.getElementById('clearConfigBtn').addEventListener('click',clearConfig);
+                document.getElementById('switchBtn').addEventListener('click',toggleSwitch);
+                document.getElementById('modeToggleBtn').addEventListener('click',toggleMode);
+                document.querySelectorAll('.sensor-card').forEach(card=>{
+                    card.addEventListener('click',e=>{ if(e.target.closest('.adjust-btn')) return; openHistory(card.dataset.identifier); });
+                });
+                document.querySelectorAll('.adjust-btn').forEach(btn=>{
+                    btn.addEventListener('click',e=>{e.stopPropagation();adjustParam(btn.dataset.identifier,btn.dataset.action);});
+                });
+                document.getElementById('closeModal').addEventListener('click',closeHistory);
+                document.getElementById('historyModal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeHistory();});
+            }
+            if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init); else init();
+        })();
+    </script>
+</body>
+</html>
